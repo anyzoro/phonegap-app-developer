@@ -220,9 +220,6 @@
     <ItemGroup />
     <ItemGroup />
     <ItemGroup>
-        <Compile Include="Plugins\org.chromium.zip\UnZip.cs" />
-    </ItemGroup>
-    <ItemGroup>
         <Compile Include="Plugins\nl.x-services.plugins.insomnia\Insomnia.cs" />
     </ItemGroup>
     <ItemGroup>
@@ -551,5 +548,11 @@
     </ItemGroup>
     <ItemGroup>
         <Content Include="www\cordova_plugins.js" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Plugins\com.adobe.phonegap.contentsync\Sync.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Plugins\com.adobe.phonegap.contentsync\Unzip.cs" />
     </ItemGroup>
 </Project>
