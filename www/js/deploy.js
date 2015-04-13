@@ -140,88 +140,23 @@
      */
 
     window.phonegap.app.downloadZip = function(options) {
-        window.requestFileSystem(
-            LocalFileSystem.PERSISTENT,
-            0,
-            function(fileSystem) {
-                var fileTransfer = new FileTransfer();
-                var uri = encodeURI(options.address + '/__api__/zip');
-                var timeStamp = Math.round(+new Date()/1000);
-                var downloadPath;
-                var dirPath;
+        var uri = encodeURI(options.address + '/__api__/zip');
+        var sync = ContentSync.sync({ src: uri, id: 'phonegapdevapp', type: 'replace', copyCordovaAssets: true });
+        
+        sync.on('complete', function(data){
+            // TODO: need to set this to either first changing into the dir OR refresh for a reload
+            console.log('chaning into: ' + data.localPath + '/www/index.html');
+            window.location.href = data.localPath + '/www/index.html';
+        });
 
-                if(window.device.platform == 'iOS'){
-                    downloadPath = cordova.file.documentsDirectory + 'app' + timeStamp + '.zip';
-                    dirPath = cordova.file.documentsDirectory + 'app' + timeStamp;
-                }else if(window.device.platform == 'Android'){
-                    downloadPath = cordova.file.applicationStorageDirectory + 'app' + timeStamp + '.zip';
-                    dirPath = cordova.file.applicationStorageDirectory + 'app' + timeStamp;
-                } else if (window.device.platform == 'Win32NT') {
-                    downloadPath = fileSystem.root.toURL() + 'www/app' + timeStamp + '.zip';
-                    dirPath = fileSystem.root.toURL() + 'www/app' + timeStamp;
-                }
-
-                fileTransfer.download(
-                    uri,
-                    downloadPath,
-                    function(entry) {
-                        console.log("download complete: " + entry.toURL());
-
-                        zip.unzip(downloadPath, dirPath, function(statusCode) {
-                            if (statusCode === 0) {
-                                console.log('[fileUtils] successfully extracted the update payload');
-                                var plugins = cordova.require('cordova/plugin_list');
-
-                                var localFiles = [
-                                    'cordova.js',
-                                    'cordova_plugins.js',
-                                    'js/deploy.js',
-                                    'js/fileUtils.js'
-                                ];
-
-                                for(var i = 0; i < plugins.length; i++){
-                                    localFiles.push(plugins[i].file);
-                                }
-
-                                if (window.device.platform == 'Win32NT') {
-                                    window.phonegap.fileUtils.getDirectory('www/app' + timeStamp, function (appDirEntry) {
-                                        window.phonegap.fileUtils.copyFiles(localFiles, appDirEntry, function () {
-                                            window.location.href = appDirEntry.fullPath + '/index.html';
-                                        });
-                                    });
-                                } else {
-                                    window.resolveLocalFileSystemURL(dirPath, function (appDirEntry) {
-                                        window.phonegap.fileUtils.copyFiles(localFiles, appDirEntry, function () {
-                                            window.location.href = dirPath + '/index.html';
-                                        }, function () {
-                                            // error out copying over localFiles
-                                        });
-                                    });
-                                }
-                            }
-                            else {
-                                console.error('[fileUtils] error: failed to extract update payload');
-                                console.log(zipPath, dirPath);
-                            }
-                        });
-                    },
-                    function(error) {
-                        if (options.onDownloadError) {
-                            setTimeout(function() {
-                                options.onDownloadError(error);
-                            }, 10);
-                        }
-                        console.log("download error source " + error.source);
-                        console.log("download error target " + error.target);
-                        console.log("upload error code" + error.code);
-                    },
-                    false
-                );
-            },
-            function(e) {
-                callback(e);
+        sync.on('error', function(e){
+            if (options.onDownloadError) {
+                setTimeout(function() {
+                    options.onDownloadError(e);
+                }, 10);
             }
-        );
+            console.log("download error " + e);
+        });
     };
 
 })();
